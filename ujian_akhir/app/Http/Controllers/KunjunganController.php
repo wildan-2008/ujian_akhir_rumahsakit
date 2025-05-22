@@ -61,7 +61,7 @@ class KunjunganController extends Controller
      public function show($id)
     {
         // Mencari kunjungan berdasarkan ID dan memuat relasinya
-        $kunjungan = Kunjungan::with(['pasien', 'dokter', 'detail   tindakans.tindakan'])->find($id);
+        $kunjungan = Kunjungan::with(['pasien', 'dokter', 'detailtindakans.tindakan'])->find($id);
 
         if (!$kunjungan) {
             return response()->json([

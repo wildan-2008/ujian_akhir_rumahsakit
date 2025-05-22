@@ -18,7 +18,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('kunjungan_id')->constrained('kunjungans')->onDelete('cascade');
             $table->foreignId('tindakan_id')->constrained('tindakans')->onDelete('cascade');
-            // Tambahkan kolom lain jika ada
+            $table->string('keterangan');
             $table->timestamps();
         });
     }

@@ -6,7 +6,7 @@ use App\Models\DetailTindakan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class Detail_TindakanController extends Controller
+class DetailTindakanController extends Controller
 {
     public function index()
     {
