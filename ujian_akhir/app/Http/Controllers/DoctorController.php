@@ -20,7 +20,7 @@ class DoctorController extends Controller
             'nama'           => 'required|string|max:255',
             'spesialisasi'   => 'required|string|max:255',
             'jadwal_praktek' => 'required|string|max:255',
-            'no_str'         => 'required|string|unique:doctors,no_str|max:50'
+            'no_str'         => 'required|string|unique:doctors,no_str|max:6'
         ]);
 
         if ($validator->fails()) {
