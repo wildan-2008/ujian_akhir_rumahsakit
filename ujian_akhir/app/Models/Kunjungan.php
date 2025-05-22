@@ -18,13 +18,15 @@ class Kunjungan extends Model
         return $this->belongsTo(Pasien::class);
     }
 
-    public function dokter()
+    public function doctor()
     {
         return $this->belongsTo(Doctor::class);
     }
 
     public function detailTindakans()
-    {
-        return $this->hasMany(Detail_Tindakan::class);
-    }
+   {
+    return $this->hasMany(DetailTindakan::class);
+   }
+
+
 }

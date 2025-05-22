@@ -15,7 +15,7 @@ class Tindakan extends Model
 
     public function detailTindakans()
     {
-        return $this->hasMany(Detail_Tindakan::class);
+        return $this->hasMany(DetailTindakan::class);
     }
 }
 

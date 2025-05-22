@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Detail_Tindakan extends Model
+class DetailTindakan extends Model
 {
     use HasFactory;
 

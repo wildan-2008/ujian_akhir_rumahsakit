@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Detail_Tindakan;
+use App\Models\DetailTindakan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -10,8 +10,7 @@ class Detail_TindakanController extends Controller
 {
     public function index()
     {
-        // Load semua detail tindakan beserta relasi kunjungan dan tindakan
-        $details = Detail_Tindakan::with(['kunjungan', 'tindakan'])->get();
+        $details = DetailTindakan::with(['kunjungan', 'tindakan'])->get();
         return response()->json($details, 200);
     }
 
@@ -31,7 +30,7 @@ class Detail_TindakanController extends Controller
             ], 422);
         }
 
-        $detail = Detail_Tindakan::create($validator->validated());
+        $detail = DetailTindakan::create($validator->validated());
 
         return response()->json([
             'success' => true,
@@ -42,7 +41,7 @@ class Detail_TindakanController extends Controller
 
     public function show($id)
     {
-        $detail = Detail_Tindakan::with(['kunjungan', 'tindakan'])->find($id);
+        $detail = DetailTindakan::with(['kunjungan', 'tindakan'])->find($id);
 
         if (!$detail) {
             return response()->json(['message' => 'Detail tindakan tidak ditemukan'], 404);
@@ -53,7 +52,7 @@ class Detail_TindakanController extends Controller
 
     public function update(Request $request, $id)
     {
-        $detail = Detail_Tindakan::find($id);
+        $detail = DetailTindakan::find($id);
 
         if (!$detail) {
             return response()->json(['message' => 'Detail tindakan tidak ditemukan'], 404);
@@ -76,7 +75,7 @@ class Detail_TindakanController extends Controller
 
     public function destroy($id)
     {
-        $detail = Detail_Tindakan::find($id);
+        $detail = DetailTindakan::find($id);
 
         if (!$detail) {
             return response()->json(['message' => 'Detail tindakan tidak ditemukan'], 404);
