@@ -10,7 +10,7 @@ class Pasien extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nama', 'nik', 'tgl_lahir', 'alamat', 'no_hp'
+        'nama', 'nik', 'tanggal_lahir', 'alamat', 'no_hp'
     ];
 
     public function kunjungans()

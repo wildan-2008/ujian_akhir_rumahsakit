@@ -1,57 +1,42 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Pasien;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
-
 class PasienController extends Controller
-
 {
     public function index()
     {
         $data = Pasien::all();
-        return response()->json($data, 200);
+        return view('pasien.index', compact('data'));
+    }
+
+    public function create()
+    {
+        return view('pasien.create');
     }
 
     public function store(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'nama'      => 'required|string|max:255',
-        'nik'       => 'required|string|unique:pasiens|max:20',
-        'tgl_lahir' => 'required|date',
-        'alamat'    => 'required|string',
-        'no_hp'     => 'required|string|max:20'
-    ]);
+    {
+        $validator = Validator::make($request->all(), [
+            'nama'           => 'required|string|max:255',
+            'nik'            => 'required|string|max:16|unique:pasiens,nik',
+            'tanggal_lahir'  => 'required|date',
+            'alamat'         => 'required|string|max:255',
+            'no_hp'          => 'required|string|max:15',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Validasi gagal',
-            'errors'  => $validator->errors()
-        ], 422);
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        Pasien::create($validator->validated());
+
+        return redirect()->route('pasien.index')->with('success', 'Data pasien berhasil disimpan!');
     }
-
-    $validated = $validator->validated();
-
-    $pasien = Pasien::create([
-        'user_id'   => Auth::id(), // Pastikan kolom user_id ada di tabel
-        'nama'      => $validated['nama'],
-        'nik'       => $validated['nik'],
-        'tgl_lahir' => $validated['tgl_lahir'],
-        'alamat'    => $validated['alamat'],
-        'no_hp'     => $validated['no_hp'],
-    ]);
-
-    return response()->json([
-        'success' => true,
-        'data'    => $pasien,
-        'message' => 'Pasien berhasil ditambahkan'
-    ], 201);
-}
 
     public function show($id)
     {
@@ -64,6 +49,12 @@ class PasienController extends Controller
         return response()->json($pasien);
     }
 
+    public function edit($id)
+    {
+        $pasien = Pasien::findOrFail($id);
+        return view('pasien.edit', compact('pasien'));
+    }
+
     public function update(Request $request, $id)
     {
         $pasien = Pasien::find($id);
@@ -73,19 +64,16 @@ class PasienController extends Controller
         }
 
         $validated = $request->validate([
-            'nama' => 'required',
-            'nik' => 'required|unique:pasiens,nik,' . $id,
-            'tgl_lahir' => 'required|date',
-            'alamat' => 'required',
-            'no_hp' => 'required'
+            'nama'           => 'required|string|max:255',
+            'nik'            => 'required|string|max:16|unique:pasiens,nik,' . $id,
+            'tanggal_lahir'  => 'required|date',
+            'alamat'         => 'required|string|max:255',
+            'no_hp'          => 'required|string|max:15',
         ]);
 
         $pasien->update($validated);
 
-        return response()->json([
-            'message' => 'Data pasien berhasil diperbarui!',
-            'data' => $pasien
-        ]);
+        return redirect()->route('pasien.index')->with('success', 'Data pasien berhasil diperbarui');
     }
 
     public function destroy($id)

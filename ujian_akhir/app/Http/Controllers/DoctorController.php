@@ -11,7 +11,12 @@ class DoctorController extends Controller
     public function index()
     {
         $data = Doctor::all();
-        return response()->json($data, 200);
+        return view('doctor.index', compact('data'));
+    }
+
+    public function create()
+    {
+        return view('doctor.create');
     }
 
     public function store(Request $request)
@@ -24,20 +29,12 @@ class DoctorController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal',
-                'errors'  => $validator->errors()
-            ], 422);
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        $doctor = Doctor::create($validator->validated());
+        Doctor::create($validator->validated());
 
-        return response()->json([
-            'success' => true,
-            'data'    => $doctor,
-            'message' => 'Dokter berhasil ditambahkan'
-        ], 201);
+        return redirect()->route('dokter.index')->with('success', 'Dokter berhasil ditambahkan!');
     }
 
     public function show($id)
@@ -50,9 +47,16 @@ class DoctorController extends Controller
 
         return response()->json($doctor);
     }
+    
+    public function edit($id)
+    {
+        $doctor = Doctor::findOrFail($id);
+        return view('doctor.edit', compact('doctor'));
+    }
 
     public function update(Request $request, $id)
     {
+
         $doctor = Doctor::find($id);
 
         if (!$doctor) {
@@ -68,22 +72,20 @@ class DoctorController extends Controller
 
         $doctor->update($validated);
 
-        return response()->json([
-            'message' => 'Data dokter berhasil diperbarui!',
-            'data'    => $doctor
-        ]);
+         return redirect()->route('dokter.index')->with('success', 'Data dokter berhasil diperbarui');
     }
 
-    public function destroy($id)
-    {
-        $doctor = Doctor::find($id);
+  public function destroy($id)
+{
+    $doctor = Doctor::find($id);
 
-        if (!$doctor) {
-            return response()->json(['message' => 'Dokter tidak ditemukan'], 404);
-        }
-
-        $doctor->delete();
-
-        return response()->json(['message' => 'Data dokter berhasil dihapus!']);
+    if (!$doctor) {
+        return response()->json(['message' => 'Dokter tidak ditemukan'], 404);
     }
+
+    $doctor->delete();
+
+    return response()->json(['message' => 'Data dokter berhasil dihapus!']);
+}
+
 }

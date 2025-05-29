@@ -3,157 +3,116 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kunjungan;
+use App\Models\Pasien;
+use App\Models\Doctor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Exception; // Tambahkan ini untuk menangkap Exception
-
-use function Pest\Laravel\put;
+use Exception;
 
 class KunjunganController extends Controller
 {
     public function index()
     {
         $kunjungans = Kunjungan::with(['pasien', 'doctor', 'detailtindakans.tindakan'])->get();
-        return response()->json($kunjungans);
+        return view('kunjungan.index', compact('kunjungans'));
+    }
+
+    public function create()
+    {
+        $pasiens = Pasien::all();
+        $doctors = Doctor::all();
+        return view('kunjungan.create', compact('pasiens', 'doctors'));
     }
 
     public function store(Request $request)
     {
-        // Gunakan Validator facade untuk validasi yang lebih fleksibel
         $validator = Validator::make($request->all(), [
-            'pasien_id' => 'required|exists:pasiens,id', // Pastikan nama tabelnya 'pasiens'
-            'doctor_id' => 'required|exists:doctors,id', // Pastikan nama tabelnya 'doctors'
+            'pasien_id' => 'required|exists:pasiens,id',
+            'doctor_id' => 'required|exists:doctors,id',
             'tanggal_kunjungan' => 'required|date',
             'keluhan' => 'required|string',
         ]);
 
-        // Jika validasi gagal
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors()
-            ], 422); // Kode 422 Unprocessable Entity untuk error validasi
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
         try {
-            // Data yang sudah divalidasi
             $validatedData = $validator->validated();
+            Kunjungan::create($validatedData);
 
-            $kunjungan = Kunjungan::create($validatedData);
-
-            return response()->json([
-                'success' => true,
-                'data' => $kunjungan,
-                'message' => 'Kunjungan berhasil dibuat'
-            ], 201); // Kode 201 Created
+            return redirect()->route('kunjungan.index')->with('success', 'Kunjungan berhasil ditambahkan.');
         } catch (Exception $e) {
-            // Tangkap exception untuk debug yang lebih baik
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal membuat kunjungan',
-                'error_detail' => $e->getMessage(), // Pesan error dari exception
-                'trace' => $e->getTraceAsString() 
-            ], 500); 
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
         }
     }
-   
-     public function show($id)
+
+    public function show($id)
     {
-        // Mencari kunjungan berdasarkan ID dan memuat relasinya
-        $kunjungan = Kunjungan::with(['pasien', 'dokter', 'detailtindakans.tindakan'])->find($id);
+        $kunjungan = Kunjungan::with(['pasien', 'doctor', 'detailtindakans.tindakan'])->find($id);
 
         if (!$kunjungan) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Kunjungan tidak ditemukan'
-            ], 404); // Kode 404 Not Found
+            return redirect()->back()->with('error', 'Kunjungan tidak ditemukan.');
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $kunjungan
-        ]);
+        return view('kunjungan.show', compact('kunjungan'));
     }
 
-    /**
-     * Memperbarui data kunjungan yang ada di database.
-     */
+    public function edit($id)
+    {
+        $kunjungan = Kunjungan::find($id);
+        $pasiens = Pasien::all();
+        $doctors = Doctor::all();
+
+        if (!$kunjungan) {
+            return redirect()->back()->with('error', 'Kunjungan tidak ditemukan.');
+        }
+
+        return view('kunjungan.edit', compact('kunjungan', 'pasiens', 'doctors'));
+    }
+
     public function update(Request $request, $id)
     {
-        // Mencari kunjungan yang akan diperbarui
         $kunjungan = Kunjungan::find($id);
 
         if (!$kunjungan) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Kunjungan tidak ditemukan'
-            ], 404);
+            return redirect()->back()->with('error', 'Kunjungan tidak ditemukan.');
         }
 
         $validator = Validator::make($request->all(), [
-            'pasien_id' => 'sometimes|required|exists:pasiens,id', // 'sometimes' artinya opsional, tapi jika ada harus valid
-            'doctor_id' => 'sometimes|required|exists:doctors,id',
-            'tanggal_kunjungan' => 'sometimes|required|date',
-            'keluhan' => 'sometimes|required|string|max:255', // Batasi panjang keluhan
+            'pasien_id' => 'required|exists:pasiens,id',
+            'doctor_id' => 'required|exists:doctors,id',
+            'tanggal_kunjungan' => 'required|date',
+            'keluhan' => 'required|string',
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors()
-            ], 422);
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
         try {
             $validatedData = $validator->validated();
-            $kunjungan->update($validatedData); // Memperbarui data kunjungan
+            $kunjungan->update($validatedData);
 
-            return response()->json([
-                'success' => true,
-                'data' => $kunjungan,
-                'message' => 'Kunjungan berhasil diperbarui'
-            ]); // Secara default, 200 OK
+            return redirect()->route('kunjungan.index')->with('success', 'Kunjungan berhasil diperbarui.');
         } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal memperbarui kunjungan',
-                'error_detail' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ], 500);
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
         }
     }
 
-    /**
-     * Menghapus kunjungan dari database.
-     */
     public function destroy($id)
     {
-        // Mencari kunjungan yang akan dihapus
         $kunjungan = Kunjungan::find($id);
 
         if (!$kunjungan) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Kunjungan tidak ditemukan'
-            ], 404);
+            return redirect()->back()->with('error', 'Kunjungan tidak ditemukan.');
         }
 
         try {
-            $kunjungan->delete(); // Menghapus kunjungan
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Kunjungan berhasil dihapus'
-            ], 200); // Kode 200 OK untuk sukses penghapusan (bisa juga 204 No Content)
+            $kunjungan->delete();
+            return redirect()->route('kunjungan.index')->with('success', 'Kunjungan berhasil dihapus.');
         } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus kunjungan',
-                'error_detail' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ], 500);
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 }

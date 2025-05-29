@@ -10,7 +10,13 @@ class TindakanController extends Controller
 {
     public function index()
     {
-        return response()->json(Tindakan::all());
+        $tindakans = Tindakan::all();
+        return view('tindakan.index', compact('tindakans'));
+    }
+
+    public function create()
+    {
+        return view('tindakan.create');
     }
 
     public function store(Request $request)
@@ -22,36 +28,22 @@ class TindakanController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors'  => $validator->errors(),
-            ], 422);
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        $tindakan = Tindakan::create($validator->validated());
-
-        return response()->json([
-            'success' => true,
-            'data'    => $tindakan,
-            'message' => 'Tindakan berhasil ditambahkan'
-        ], 201);
+        Tindakan::create($validator->validated());
+        return redirect()->route('tindakan.index')->with('success', 'Tindakan berhasil ditambahkan.');
     }
 
-    public function show($id)
+    public function edit($id)
     {
-        $tindakan = Tindakan::find($id);
-        if (!$tindakan) {
-            return response()->json(['message' => 'Tindakan tidak ditemukan'], 404);
-        }
-        return response()->json($tindakan);
+        $tindakan = Tindakan::findOrFail($id);
+        return view('tindakan.edit', compact('tindakan'));
     }
 
     public function update(Request $request, $id)
     {
-        $tindakan = Tindakan::find($id);
-        if (!$tindakan) {
-            return response()->json(['message' => 'Tindakan tidak ditemukan'], 404);
-        }
+        $tindakan = Tindakan::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
             'nama_tindakan' => 'required|string|max:255',
@@ -60,30 +52,17 @@ class TindakanController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors'  => $validator->errors(),
-            ], 422);
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
         $tindakan->update($validator->validated());
-
-        return response()->json([
-            'success' => true,
-            'data'    => $tindakan,
-            'message' => 'Tindakan berhasil diperbarui'
-        ]);
+        return redirect()->route('tindakan.index')->with('success', 'Tindakan berhasil diperbarui.');
     }
 
     public function destroy($id)
     {
-        $tindakan = Tindakan::find($id);
-        if (!$tindakan) {
-            return response()->json(['message' => 'Tindakan tidak ditemukan'], 404);
-        }
-
+        $tindakan = Tindakan::findOrFail($id);
         $tindakan->delete();
-
-        return response()->json(['message' => 'Tindakan berhasil dihapus']);
+        return redirect()->route('tindakan.index')->with('success', 'Tindakan berhasil dihapus.');
     }
 }
